@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARISE // Hunter System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#04060d;
+    --panel:#070c1a;
+    --panel-2:#0b1226;
+    --edge:#1b2b52;
+    --azure:#3ea8ff;
+    --azure-bright:#7fd4ff;
+    --violet:#7b5cff;
+    --gold:#ffd166;
+    --danger:#ff4d6a;
+    --text:#dce6f7;
+    --text-dim:#7488ad;
+    --shadow-glow: 0 0 18px rgba(62,168,255,0.35);
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    padding:0;
+    background:var(--void);
+    color:var(--text);
+    font-family:'Rajdhani',sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+
+  body{
+    background-image:
+      radial-gradient(ellipse at 20% -10%, rgba(123,92,255,0.18), transparent 45%),
+      radial-gradient(ellipse at 85% 0%, rgba(62,168,255,0.14), transparent 40%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px, transparent 1px, transparent 3px);
+  }
+
+  .stage{
+    max-width:760px;
+    margin:0 auto;
+    padding:28px 16px 80px;
+  }
+
+  /* ---------- shared panel chrome ---------- */
+  .panel{
+    position:relative;
+    background:linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid var(--edge);
+    padding:22px;
+    margin-bottom:20px;
+    clip-path:polygon(0 10px,10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%);
+  }
+  .panel::before,.panel::after{
+    content:'';
+    position:absolute;
+    width:14px;height:14px;
+    border:2px solid var(--azure-bright);
+    opacity:0.8;
+  }
+  .panel::before{top:-1px;left:-1px;border-right:none;border-bottom:none;}
+  .panel::after{bottom:-1px;right:-1px;border-left:none;border-top:none;}
+
+  .panel-label{
+    font-family:'Orbitron',sans-serif;
+    font-size:11px;
+    letter-spacing:3px;
+    color:var(--azure-bright);
+    margin:0 0 16px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .panel-label::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background:linear-gradient(90deg,var(--edge),transparent);
+  }
+
+  /* ---------- header / identity ---------- */
+  .brand{
+    text-align:center;
+    margin-bottom:22px;
+  }
+  .brand-mark{
+    font-family:'Orbitron',sans-serif;
+    font-weight:900;
+    font-size:13px;
+    letter-spacing:8px;
+    color:var(--text-dim);
+  }
+  .brand-title{
+    font-family:'Orbitron',sans-serif;
+    font-weight:700;
+    font-size:28px;
+    letter-spacing:4px;
+    background:linear-gradient(90deg,var(--azure-bright),var(--violet));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    margin:4px 0 0;
+    text-shadow:none;
+  }
+
+  .id-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .hunter-name{
+    font-family:'Orbitron',sans-serif;
+    font-size:20px;
+    background:transparent;
+    border:none;
+    border-bottom:1px solid var(--edge);
+    color:var(--text);
+    padding:4px 2px;
+    width:210px;
+    max-width:100%;
+    outline:none;
+  }
+  .hunter-name:focus{border-bottom-color:var(--azure-bright);}
+  .rank-badge{
+    font-family:'Orbitron',sans-serif;
+    font-size:26px;
+    font-weight:900;
+    color:var(--gold);
+    border:1px solid var(--gold);
+    width:46px;height:46px;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 14px rgba(255,209,102,0.35);
+    flex-shrink:0;
+  }
+  .level-line{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    margin-top:14px;
+  }
+  .level-line .lv{
+    font-family:'Orbitron',sans-serif;
+    color:var(--azure-bright);
+    font-size:15px;
+    letter-spacing:1px;
+  }
+  .level-line .lv b{font-size:20px;}
+
+  .xp-track{
+    margin-top:10px;
+    height:14px;
+    background:#0a0f1e;
+    border:1px solid var(--edge);
+    position:relative;
+    overflow:hidden;
+  }
+  .xp-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--violet),var(--azure-bright));
+    box-shadow:0 0 10px rgba(62,168,255,0.6);
+    transition:width .5s ease;
+  }
+  .xp-label{
+    font-size:12px;
+    color:var(--text-dim);
+    margin-top:6px;
+    text-align:right;
+    letter-spacing:1px;
+  }
+
+  /* ---------- stats grid ---------- */
+  .stat-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+  }
+  .stat{
+    border:1px solid var(--edge);
+    background:rgba(255,255,255,0.02);
+    padding:12px 14px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .stat-name{
+    font-size:13px;
+    letter-spacing:2px;
+    color:var(--text-dim);
+  }
+  .stat-name span{
+    display:block;
+    font-family:'Orbitron',sans-serif;
+    font-size:15px;
+    color:var(--text);
+    letter-spacing:1px;
+    margin-top:2px;
+  }
+  .stat-val{
+    font-family:'Orbitron',sans-serif;
+    font-size:22px;
+    color:var(--azure-bright);
+  }
+
+  /* ---------- quest lists ---------- */
+  .quest{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 4px;
+    border-bottom:1px dashed var(--edge);
+  }
+  .quest:last-child{border-bottom:none;}
+  .check{
+    width:22px;height:22px;
+    border:1px solid var(--azure-bright);
+    flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    font-size:14px;
+    color:var(--azure-bright);
+    user-select:none;
+    background:rgba(62,168,255,0.06);
+  }
+  .quest.done .check{
+    background:var(--azure-bright);
+    color:var(--void);
+  }
+  .quest-body{flex:1;min-width:0;}
+  .quest-title{
+    font-size:16px;
+    font-weight:600;
+    transition:color .2s, opacity .2s;
+  }
+  .quest.done .quest-title{
+    color:var(--text-dim);
+    text-decoration:line-through;
+    opacity:0.7;
+  }
+  .quest-tag{
+    font-size:11px;
+    letter-spacing:1px;
+    color:var(--text-dim);
+    text-transform:uppercase;
+  }
+  .quest-xp{
+    font-family:'Orbitron',sans-serif;
+    font-size:12px;
+    color:var(--gold);
+    white-space:nowrap;
+  }
+  .quest-del{
+    background:none;border:none;color:var(--text-dim);
+    cursor:pointer;font-size:16px;padding:2px 6px;
+    line-height:1;
+  }
+  .quest-del:hover{color:var(--danger);}
+
+  .add-row{
+    display:flex;
+    gap:8px;
+    margin-top:14px;
+    flex-wrap:wrap;
+  }
+  .add-row input[type=text]{
+    flex:1;
+    min-width:120px;
+    background:#0a0f1e;
+    border:1px solid var(--edge);
+    color:var(--text);
+    padding:10px 12px;
+    font-family:'Rajdhani',sans-serif;
+    font-size:15px;
+    outline:none;
+  }
+  .add-row input[type=text]:focus{border-color:var(--azure-bright);}
+  .add-row select{
+    background:#0a0f1e;
+    border:1px solid var(--edge);
+    color:var(--text);
+    padding:10px 8px;
+    font-family:'Rajdhani',sans-serif;
+    font-size:14px;
+    outline:none;
+  }
+  .btn{
+    font-family:'Orbitron',sans-serif;
+    font-size:12px;
+    letter-spacing:2px;
+    background:linear-gradient(180deg, rgba(62,168,255,0.18), rgba(62,168,255,0.06));
+    border:1px solid var(--azure-bright);
+    color:var(--azure-bright);
+    padding:10px 18px;
+    cursor:pointer;
+    transition:background .2s, color .2s;
+  }
+  .btn:hover{background:var(--azure-bright);color:var(--void);}
+
+  /* ---------- goals ---------- */
+  .goal{margin-bottom:16px;}
+  .goal:last-child{margin-bottom:0;}
+  .goal-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:6px;
+    gap:8px;
+  }
+  .goal-name{font-size:16px;font-weight:600;}
+  .goal-nums{
+    font-family:'Orbitron',sans-serif;
+    font-size:12px;
+    color:var(--text-dim);
+    white-space:nowrap;
+  }
+  .goal-track{
+    height:10px;
+    background:#0a0f1e;
+    border:1px solid var(--edge);
+    overflow:hidden;
+  }
+  .goal-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--gold),#ff9a3c);
+    transition:width .4s ease;
+  }
+  .goal-reward{
+    font-size:11px;
+    letter-spacing:0.5px;
+    color:var(--gold);
+    margin-top:5px;
+  }
+  .goal-controls{
+    display:flex;
+    gap:6px;
+    margin-top:6px;
+    align-items:center;
+  }
+  .mini-btn{
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--edge);
+    color:var(--text);
+    width:26px;height:26px;
+    cursor:pointer;
+    font-size:14px;
+    line-height:1;
+  }
+  .mini-btn:hover{border-color:var(--azure-bright);color:var(--azure-bright);}
+
+  .empty{
+    color:var(--text-dim);
+    font-size:14px;
+    text-align:center;
+    padding:14px 0;
+    letter-spacing:1px;
+  }
+
+  /* ---------- suggested goal chips ---------- */
+  .chip-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:16px;
+  }
+  .chip-cat{
+    font-size:11px;
+    letter-spacing:2px;
+    color:var(--text-dim);
+    text-transform:uppercase;
+    margin:2px 0 8px;
+  }
+  .chip{
+    font-family:'Rajdhani',sans-serif;
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:0.5px;
+    color:var(--azure-bright);
+    background:rgba(62,168,255,0.06);
+    border:1px solid var(--edge);
+    padding:7px 13px;
+    cursor:pointer;
+    transition:background .2s, border-color .2s, color .2s;
+    white-space:nowrap;
+  }
+  .chip:hover{border-color:var(--azure-bright);}
+  .chip.active{
+    background:var(--azure-bright);
+    border-color:var(--azure-bright);
+    color:var(--void);
+  }
+  .chip.active::before{
+    content:'✓ ';
+  }
+
+  .reset-line{
+    text-align:center;
+    margin-top:6px;
+  }
+  .reset-line button{
+    background:none;border:none;
+    color:var(--text-dim);
+    font-size:12px;
+    letter-spacing:1px;
+    text-decoration:underline;
+    cursor:pointer;
+  }
+  .reset-line button:hover{color:var(--danger);}
+
+  /* ---------- level up overlay ---------- */
+  .overlay{
+    position:fixed;inset:0;
+    background:rgba(2,4,10,0.86);
+    display:flex;align-items:center;justify-content:center;
+    z-index:50;
+    opacity:0;pointer-events:none;
+    transition:opacity .35s ease;
+  }
+  .overlay.show{opacity:1;pointer-events:auto;}
+  .lvup-box{
+    text-align:center;
+    transform:scale(0.85);
+    transition:transform .35s ease;
+  }
+  .overlay.show .lvup-box{transform:scale(1);}
+  .lvup-box .tag{
+    font-family:'Orbitron',sans-serif;
+    letter-spacing:6px;
+    color:var(--azure-bright);
+    font-size:13px;
+  }
+  .lvup-box .big{
+    font-family:'Orbitron',sans-serif;
+    font-weight:900;
+    font-size:56px;
+    letter-spacing:4px;
+    color:var(--gold);
+    text-shadow:0 0 30px rgba(255,209,102,0.6);
+    margin:10px 0;
+  }
+  .lvup-box .sub{
+    color:var(--text-dim);
+    font-size:14px;
+    letter-spacing:1px;
+  }
+
+  @media (max-width:480px){
+    .stat-grid{grid-template-columns:1fr;}
+    .rank-badge{width:38px;height:38px;font-size:20px;}
+    .brand-title{font-size:22px;letter-spacing:2px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <div class="brand">
+    <div class="brand-mark">SYSTEM WINDOW</div>
+    <div class="brand-title">ARISE</div>
+  </div>
+
+  <!-- Identity / Level -->
+  <div class="panel">
+    <div class="panel-label">HUNTER STATUS</div>
+    <div class="id-row">
+      <div>
+        <input id="hunterName" class="hunter-name" type="text" placeholder="Enter your name" maxlength="24">
+        <div class="level-line">
+          <span class="lv">LV. <b id="lvNum">1</b></span>
+        </div>
+      </div>
+      <div class="rank-badge" id="rankBadge">E</div>
+    </div>
+    <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
+    <div class="xp-label"><span id="xpNow">0</span> / <span id="xpNeed">100</span> XP</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="panel">
+    <div class="panel-label">STATUS PARAMETERS</div>
+    <div class="stat-grid" id="statGrid"></div>
+  </div>
+
+  <!-- Daily Quests -->
+  <div class="panel">
+    <div class="panel-label">DAILY QUEST</div>
+    <div id="dailyList"></div>
+    <div class="add-row">
+      <input type="text" id="dailyInput" placeholder="New daily quest...">
+      <select id="dailyTag">
+        <option value="STR">STR</option>
+        <option value="VIT">VIT</option>
+        <option value="AGI">AGI</option>
+        <option value="END">END</option>
+        <option value="INT">INT</option>
+        <option value="PER">PER</option>
+      </select>
+      <button class="btn" id="dailyAdd">ADD</button>
+    </div>
+    <div class="reset-line"><button id="dailyReset">reset today's quests</button></div>
+  </div>
+
+  <!-- Long-term Goals -->
+  <div class="panel">
+    <div class="panel-label">ACTIVE QUEST LOG // GOALS</div>
+    <div id="goalList"></div>
+
+    <div class="panel-label" style="margin-top:18px;font-size:10px;">SUGGESTED GOALS // TAP TO LOCK IN</div>
+    <div id="suggestedGoals"></div>
+
+    <div class="add-row">
+      <input type="text" id="goalInput" placeholder="New goal (e.g. Bench 100kg)...">
+      <input type="text" id="goalTarget" placeholder="Target #" style="max-width:90px;">
+      <select id="goalStat">
+        <option value="">No stat</option>
+        <option value="STR">STR</option>
+        <option value="VIT">VIT</option>
+        <option value="AGI">AGI</option>
+        <option value="END">END</option>
+        <option value="INT">INT</option>
+        <option value="PER">PER</option>
+      </select>
+      <input type="text" inputmode="numeric" id="goalXp" placeholder="XP reward" style="max-width:100px;">
+      <button class="btn" id="goalAdd">ADD</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="lvupOverlay">
+  <div class="lvup-box">
+    <div class="tag">- NOTIFICATION -</div>
+    <div class="big">LEVEL UP</div>
+    <div class="sub" id="lvupSub">You have reached Lv. 2</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STORE_KEY = 'ariseHunterData_v1';
+
+  const RANKS = [
+    {min:1,  label:'E'},
+    {min:10, label:'D'},
+    {min:20, label:'C'},
+    {min:35, label:'B'},
+    {min:50, label:'A'},
+    {min:70, label:'S'},
+  ];
+
+  const STAT_DEFS = [
+    {key:'STR', name:'Strength'},
+    {key:'VIT', name:'Vitality'},
+    {key:'AGI', name:'Agility'},
+    {key:'END', name:'Endurance'},
+    {key:'INT', name:'Intelligence'},
+    {key:'PER', name:'Perception'},
+  ];
+
+  const GOAL_TEMPLATES = [
+    { category:'Fitness', items:[
+      {name:'Run a 5K',                target:5,   unit:'km',   stat:'AGI', xp:40},
+      {name:'Run a 10K',                target:10,  unit:'km',   stat:'END', xp:60},
+      {name:'50 Push-ups Straight',     target:50,  unit:'reps', stat:'STR', xp:30},
+      {name:'Bench Bodyweight',         target:1,   unit:'',     stat:'STR', xp:50},
+      {name:'Lose 5kg',                 target:5,   unit:'kg',   stat:'VIT', xp:80},
+      {name:'Gain 5kg Muscle',          target:5,   unit:'kg',   stat:'STR', xp:80},
+      {name:'30-Day Workout Streak',    target:30,  unit:'days', stat:'END', xp:70},
+      {name:'Touch Your Toes',          target:1,   unit:'',     stat:'AGI', xp:20},
+      {name:'Hold a 1min Plank',        target:60,  unit:'sec',  stat:'VIT', xp:25},
+      {name:'Do a Pull-up',             target:1,   unit:'',     stat:'STR', xp:35},
+    ]},
+    { category:'Mind & Habits', items:[
+      {name:'Meditate 30 Days',         target:30,  unit:'days', stat:'INT', xp:60},
+      {name:'Journal 30 Days',          target:30,  unit:'days', stat:'INT', xp:50},
+      {name:'Read 12 Books',            target:12,  unit:'books',stat:'INT', xp:90},
+      {name:'Learn a New Skill',        target:1,   unit:'',     stat:'INT', xp:70},
+      {name:'No Social Media 7 Days',   target:7,   unit:'days', stat:'PER', xp:35},
+      {name:'Cut Screen Time to 2hrs',  target:30,  unit:'days', stat:'PER', xp:60},
+      {name:'Quit a Bad Habit 30 Days', target:30,  unit:'days', stat:'VIT', xp:70},
+      {name:'Wake Up at 6AM 30 Days',   target:30,  unit:'days', stat:'AGI', xp:60},
+      {name:'8 Hours Sleep 30 Days',    target:30,  unit:'days', stat:'VIT', xp:60},
+    ]},
+    { category:'Money', items:[
+      {name:'Save $1,000',              target:1000,unit:'$',    stat:'PER', xp:100},
+      {name:'Build an Emergency Fund',  target:1,   unit:'',     stat:'PER', xp:90},
+      {name:'Pay Off a Debt',           target:1,   unit:'',     stat:'PER', xp:100},
+      {name:'Stick to a Budget 30 Days',target:30,  unit:'days', stat:'PER', xp:50},
+      {name:'No Impulse Buys 30 Days',  target:30,  unit:'days', stat:'PER', xp:50},
+    ]},
+    { category:'Lifestyle', items:[
+      {name:'Cook at Home 30 Days',     target:30,  unit:'days', stat:'VIT', xp:50},
+      {name:'Drink 2L Water Daily',     target:30,  unit:'days', stat:'VIT', xp:40},
+      {name:'Declutter a Room',         target:1,   unit:'',     stat:'PER', xp:30},
+      {name:'No Junk Food 30 Days',     target:30,  unit:'days', stat:'VIT', xp:60},
+      {name:'Call Family Weekly',       target:4,   unit:'weeks',stat:'INT', xp:30},
+    ]},
+  ];
+
+  const DEFAULT_DAILY = [
+    {id:'d1', title:'100 Push-ups', tag:'STR', xp:15, done:false},
+    {id:'d2', title:'100 Sit-ups',  tag:'VIT', xp:15, done:false},
+    {id:'d3', title:'100 Squats',   tag:'AGI', xp:15, done:false},
+    {id:'d4', title:'10km Run',     tag:'END', xp:25, done:false},
+  ];
+
+  function freshState(){
+    return {
+      name:'Player',
+      level:1,
+      xp:0,
+      stats:{STR:10,VIT:10,AGI:10,END:10,INT:10,PER:10},
+      daily:JSON.parse(JSON.stringify(DEFAULT_DAILY)),
+      goals:[
+        {id:'g1', name:'First 5K Run', current:0, target:5, unit:'km'}
+      ],
+      lastReset: new Date().toDateString()
+    };
+  }
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      if(!raw) return freshState();
+      const parsed = JSON.parse(raw);
+      const fresh = freshState();
+      return Object.assign(fresh, parsed, {
+        stats: Object.assign(fresh.stats, parsed.stats||{})
+      });
+    }catch(e){
+      return freshState();
+    }
+  }
+
+  function save(){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+    catch(e){ /* storage unavailable — app still works this session */ }
+  }
+
+  let state = load();
+
+  function xpNeeded(level){
+    return Math.round(100 * Math.pow(1.18, level-1));
+  }
+
+  function rankFor(level){
+    let r = RANKS[0].label;
+    for(const rk of RANKS){ if(level >= rk.min) r = rk.label; }
+    return r;
+  }
+
+  function uid(){ return 'x'+Math.random().toString(36).slice(2,9); }
+
+  function gainXP(amount, statTag){
+    state.xp += amount;
+    if(statTag && state.stats[statTag] !== undefined){
+      state.stats[statTag] += Math.max(1, Math.round(amount/10));
+    }
+    let leveled = false;
+    while(state.xp >= xpNeeded(state.level)){
+      state.xp -= xpNeeded(state.level);
+      state.level += 1;
+      leveled = true;
+    }
+    save();
+    render();
+    if(leveled) showLevelUp();
+  }
+
+  function showLevelUp(){
+    const ov = document.getElementById('lvupOverlay');
+    document.getElementById('lvupSub').textContent = 'You have reached Lv. ' + state.level;
+    ov.classList.add('show');
+    setTimeout(()=> ov.classList.remove('show'), 2200);
+  }
+
+  function maybeDailyReset(){
+    const today = new Date().toDateString();
+    if(state.lastReset !== today){
+      state.daily.forEach(q => q.done = false);
+      state.lastReset = today;
+      save();
+    }
+  }
+
+  function render(){
+    document.getElementById('hunterName').value = state.name;
+    document.getElementById('lvNum').textContent = state.level;
+    document.getElementById('rankBadge').textContent = rankFor(state.level);
+    const need = xpNeeded(state.level);
+    document.getElementById('xpNow').textContent = state.xp;
+    document.getElementById('xpNeed').textContent = need;
+    document.getElementById('xpFill').style.width = Math.min(100, (state.xp/need)*100) + '%';
+
+    const grid = document.getElementById('statGrid');
+    grid.innerHTML = '';
+    STAT_DEFS.forEach(def=>{
+      const el = document.createElement('div');
+      el.className = 'stat';
+      el.innerHTML = `<div class="stat-name">${def.key}<span>${def.name}</span></div><div class="stat-val">${state.stats[def.key]}</div>`;
+      grid.appendChild(el);
+    });
+
+    const dl = document.getElementById('dailyList');
+    dl.innerHTML = '';
+    if(state.daily.length === 0){
+      dl.innerHTML = '<div class="empty">No daily quests yet — add one below.</div>';
+    }
+    state.daily.forEach(q=>{
+      const row = document.createElement('div');
+      row.className = 'quest' + (q.done ? ' done' : '');
+      row.innerHTML = `
+        <div class="check">${q.done ? '✓' : ''}</div>
+        <div class="quest-body">
+          <div class="quest-title">${escapeHtml(q.title)}</div>
+          <div class="quest-tag">${q.tag}</div>
+        </div>
+        <div class="quest-xp">+${q.xp} XP</div>
+        <button class="quest-del" title="remove">✕</button>
+      `;
+      row.querySelector('.check').addEventListener('click', ()=>{
+        if(!q.done){ q.done = true; gainXP(q.xp, q.tag); }
+        else { q.done = false; save(); render(); }
+      });
+      row.querySelector('.quest-del').addEventListener('click', ()=>{
+        state.daily = state.daily.filter(x=>x.id!==q.id);
+        save(); render();
+      });
+      dl.appendChild(row);
+    });
+
+    const gl = document.getElementById('goalList');
+    gl.innerHTML = '';
+    if(state.goals.length === 0){
+      gl.innerHTML = '<div class="empty">No active goals — add one below.</div>';
+    }
+    state.goals.forEach(g=>{
+      const pct = g.target > 0 ? Math.min(100, (g.current/g.target)*100) : 0;
+      const wrap = document.createElement('div');
+      wrap.className = 'goal';
+      wrap.innerHTML = `
+        <div class="goal-top">
+          <div class="goal-name">${escapeHtml(g.name)}</div>
+          <div class="goal-nums">${g.current} / ${g.target}${g.unit ? ' '+escapeHtml(g.unit):''}</div>
+        </div>
+        <div class="goal-track"><div class="goal-fill" style="width:${pct}%"></div></div>
+        <div class="goal-reward">+${g.xp||30} XP${g.stat ? ' · '+g.stat : ''} on completion</div>
+        <div class="goal-controls">
+          <button class="mini-btn" data-act="dec">−</button>
+          <button class="mini-btn" data-act="inc">+</button>
+          <button class="quest-del" data-act="del" style="margin-left:auto;">✕</button>
+        </div>
+      `;
+      wrap.querySelector('[data-act=inc]').addEventListener('click', ()=>{
+        const wasComplete = g.current >= g.target;
+        g.current += 1;
+        if(!wasComplete && g.current >= g.target){ gainXP(g.xp || 30, g.stat || null); }
+        else { save(); render(); }
+      });
+      wrap.querySelector('[data-act=dec]').addEventListener('click', ()=>{
+        g.current = Math.max(0, g.current-1);
+        save(); render();
+      });
+      wrap.querySelector('[data-act=del]').addEventListener('click', ()=>{
+        state.goals = state.goals.filter(x=>x.id!==g.id);
+        save(); render();
+      });
+      gl.appendChild(wrap);
+    });
+
+    const sg = document.getElementById('suggestedGoals');
+    sg.innerHTML = '';
+    GOAL_TEMPLATES.forEach(group=>{
+      const catLabel = document.createElement('div');
+      catLabel.className = 'chip-cat';
+      catLabel.textContent = group.category;
+      sg.appendChild(catLabel);
+
+      const row = document.createElement('div');
+      row.className = 'chip-row';
+      group.items.forEach(tpl=>{
+        const isActive = state.goals.some(g => g.name === tpl.name);
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip' + (isActive ? ' active' : '');
+        chip.textContent = tpl.name;
+        chip.addEventListener('click', ()=>{
+          if(isActive){
+            state.goals = state.goals.filter(g => g.name !== tpl.name);
+          } else {
+            state.goals.push({id:uid(), name:tpl.name, current:0, target:tpl.target, unit:tpl.unit, stat:tpl.stat, xp:tpl.xp});
+          }
+          save(); render();
+        });
+        row.appendChild(chip);
+      });
+      sg.appendChild(row);
+    });
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  document.getElementById('hunterName').addEventListener('input', (e)=>{
+    state.name = e.target.value || 'Player';
+    save();
+  });
+
+  document.getElementById('dailyAdd').addEventListener('click', ()=>{
+    const input = document.getElementById('dailyInput');
+    const title = input.value.trim();
+    if(!title) return;
+    const tag = document.getElementById('dailyTag').value;
+    state.daily.push({id:uid(), title, tag, xp:15, done:false});
+    input.value = '';
+    save(); render();
+  });
+  document.getElementById('dailyInput').addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter') document.getElementById('dailyAdd').click();
+  });
+
+  document.getElementById('dailyReset').addEventListener('click', ()=>{
+    state.daily.forEach(q=>q.done=false);
+    save(); render();
+  });
+
+  document.getElementById('goalAdd').addEventListener('click', ()=>{
+    const nameInput = document.getElementById('goalInput');
+    const targetInput = document.getElementById('goalTarget');
+    const statSelect = document.getElementById('goalStat');
+    const xpInput = document.getElementById('goalXp');
+    const name = nameInput.value.trim();
+    const target = parseFloat(targetInput.value);
+    if(!name || !target || target <= 0) return;
+    const stat = statSelect.value || null;
+    const xpVal = parseInt(xpInput.value, 10);
+    const xp = (!isNaN(xpVal) && xpVal > 0) ? xpVal : 30;
+    state.goals.push({id:uid(), name, current:0, target, unit:'', stat, xp});
+    nameInput.value = ''; targetInput.value = ''; xpInput.value = ''; statSelect.value = '';
+    save(); render();
+  });
+
+  maybeDailyReset();
+  render();
+})();
+</script>
+
+</body>
+</html>
